@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Veille OCR vs VLM</title>
+<style>
+:root{--bg:#f6f5f1;--sf:#fff;--tx:#1d1d1b;--mu:#66645e;--bd:#dedbd2;--a:#1f6feb;--b:#c2410c;--ok:#15803d;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15161a;--sf:#1f2127;--tx:#f0efea;--mu:#a09e96;--bd:#33363e;--a:#6ea8ff;--b:#ff9a5c;--ok:#4ade80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15161a;--sf:#1f2127;--tx:#f0efea;--mu:#a09e96;--bd:#33363e;--a:#6ea8ff;--b:#ff9a5c;--ok:#4ade80;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+#bar{height:4px;background:var(--bd)}#bar i{display:block;height:100%;width:0;background:var(--a);transition:width .3s}
+main{flex:1;overflow:auto;position:relative}
+section{display:none;max-width:980px;margin:0 auto;padding:28px 22px 20px}
+section.on{display:block;animation:f .3s}
+@keyframes f{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+h1{font-size:clamp(30px,6vw,52px);line-height:1.1;margin:.2em 0}
+h2{font-size:clamp(22px,4vw,32px);margin:0 0 6px}
+.tag{color:var(--a);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.mu{color:var(--mu)}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:14px}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px 16px}
+button{font:inherit;color:var(--tx);background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:8px 14px;cursor:pointer}
+button:hover{border-color:var(--a)}button.sel{background:var(--a);color:#fff;border-color:var(--a)}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.out{background:var(--sf);border:1px solid var(--bd);border-left:4px solid var(--a);border-radius:10px;padding:12px 16px;min-height:60px}
+.out.b{border-left-color:var(--b)}
+pre{margin:0;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+.doc{background:#fff;color:#222;border:1px solid #ccc;border-radius:6px;padding:14px;font:13px/1.6 ui-monospace,Menlo,monospace;transform:rotate(-1deg)}
+.two{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%}td,th{border:1px solid var(--bd);padding:8px 10px;text-align:left;vertical-align:top}th{background:var(--sf)}
+nav{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border-top:1px solid var(--bd);background:var(--sf)}
+#dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}#dots b{width:9px;height:9px;border-radius:50%;background:var(--bd);cursor:pointer}#dots b.on{background:var(--a)}
+.ok{color:var(--ok);font-weight:600}.ko{color:var(--b);font-weight:600}
+li{margin:4px 0}
+</style>
+</head>
+<body>
+<div id="bar"><i></i></div>
+<main>
+
+<section>
+<div class="tag">Veille technologique · 30 min</div>
+<h1>OCR vs VLM</h1>
+<p style="font-size:20px">Lire du texte dans une image… ou comprendre l’image ?</p>
+<p class="mu">Objectif : comprendre le fonctionnement de l’OCR et des Vision-Language Models, leurs différences et leurs usages. Naviguez avec les flèches ← → du clavier ou les boutons.</p>
+</section>
+
+<section>
+<div class="tag">1 · Présentation de l’OCR</div><h2>Qu’est-ce que l’OCR ?</h2>
+<p><b>Optical Character Recognition</b> : technologie qui convertit le texte contenu dans une image, un scan ou un PDF non sélectionnable en <b>texte numérique exploitable</b> (recherche, copie, indexation).</p>
+<div class="two">
+<div class="card"><b>Entrée</b><br>Photo, scan, capture d’écran, facture, pièce d’identité, PDF scanné.</div>
+<div class="card"><b>Sortie</b><br>Texte brut, souvent avec positions (boîtes englobantes) et scores de confiance.</div>
+</div>
+<div class="two">
+<div class="card"><b>Deux générations</b><br>• <b>OCR classique</b> : comparaison de formes et règles, efficace sur polices propres.<br>• <b>OCR neuronal</b> : réseaux de neurones (CNN, LSTM, Transformers) entraînés sur des millions d’images, bien plus robustes au bruit, aux polices variées et aux photos.</div>
+<div class="card"><b>Comment mesurer la qualité ?</b><br>Par le taux d’erreur au niveau des caractères (CER) ou des mots (WER) : on compare le texte lu au texte de référence. Plus il est bas, meilleur est l’OCR.</div>
+<div class="card"><b>Où l’utilise-t-on ?</b><br>Numérisation d’archives, saisie automatique de factures, lecture de plaques d’immatriculation, scan de cartes d’identité, applications de traduction par caméra.</div>
+</div>
+<p class="mu">Principe clé : l’OCR <b>transcrit</b> ce qui est écrit, il ne cherche pas à le <b>comprendre</b>. Il ne sait pas que « 1 440 € » est un total.</p>
+</section>
+
+<section>
+<div class="tag">2 · Fonctionnement de l’OCR</div><h2>Le pipeline OCR (cliquez sur chaque étape)</h2>
+<div class="row" id="ocrb"></div>
+<div class="out" id="ocro"></div>
+<p class="mu">Les OCR modernes (PaddleOCR, Tesseract 4+) utilisent des réseaux de neurones (CNN, LSTM, Transformers) pour les étapes de détection et de reconnaissance.</p>
+</section>
+
+<section>
+<div class="tag">3 · Présentation des VLM</div><h2>Vision-Language Models</h2>
+<p>Modèles multimodaux qui prennent <b>une image + une instruction en langage naturel</b> et produisent une réponse textuelle.</p>
+<div class="row" id="vlmb"></div>
+<div class="out b" id="vlmo"></div>
+<p class="mu">Exemples de capacités : décrire une image, lire un document, répondre à une question, extraire des champs en JSON, interpréter un graphique.</p>
+</section>
+
+<section>
+<div class="tag">Démo interactive (simulation)</div><h2>Même facture, deux approches</h2>
+<div class="two">
+<div class="doc">FACTURE N° 2026-0412<br>Date : 14/03/2026<br>Client : Atlas Conseil<br>Prestation : audit … 1 200,00 €<br>TVA 20 % … 240,00 €<br><b>TOTAL TTC … 1 440,00 €</b></div>
+<div>
+<div class="row"><button id="d1">Lancer l’OCR</button><button id="d2">« Quel est le total TTC ? »</button><button id="d3">« Extrais en JSON »</button></div>
+<div class="out" id="demo"><span class="mu">Choisissez une action.</span></div>
+</div></div>
+<p class="mu">Sorties simulées à titre pédagogique : l’OCR rend du texte brut, le VLM répond à la question.</p>
+</section>
+
+<section>
+<div class="tag">4 · OCR vs VLM</div><h2>Différences, avantages, limites</h2>
+<div class="row" id="tabs"></div>
+<div class="scroll"><table id="tbl"></table></div>
+</section>
+
+<section>
+<div class="tag">4 · Quand privilégier l’un ou l’autre ?</div><h2>Aidez-vous du sélecteur</h2>
+<p class="mu">Cochez ce qui correspond à votre besoin :</p>
+<div class="row" id="crit"></div>
+<div class="out" id="reco"></div>
+</section>
+
+<section>
+<div class="tag">5 · Outils et applications</div><h2>Aperçu des outils (cliquez)</h2>
+<div class="row" id="toolb"></div>
+<div class="out" id="toolo"></div>
+</section>
+
+<section>
+<div class="tag">Conclusion</div><h2>Ce qu’il faut retenir</h2>
+<div class="two">
+<div class="card"><b>OCR = lire</b><br>Rapide, léger, précis sur le texte net. Il donne le texte et ses positions, rien de plus.</div>
+<div class="card"><b>VLM = comprendre</b><br>Il interprète l’image, répond aux questions et structure l’information, au prix de plus de ressources et d’un risque d’erreur.</div>
+<div class="card"><b>Approche hybride</b><br>L’OCR extrait le texte exact, le VLM l’interprète et le structure. On peut aussi faire relire par le VLM les passages où la confiance de l’OCR est faible.</div>
+<div class="card"><b>Tendance</b><br>Les VLM de documents (famille Qwen-VL, entre autres) rattrapent l’OCR sur la lecture, mais l’OCR reste le choix de référence pour les gros volumes et les contraintes de coût ou de fiabilité.</div>
+</div>
+<p class="mu">Bonne pratique : toujours vérifier les valeurs critiques (montants, dates, identifiants) produites par un VLM.</p>
+</section>
+
+</main>
+<nav><button id="prev">← Précédent</button><div id="dots"></div><button id="next">Suivant →</button></nav>
+
+<script>
+var S=[].slice.call(document.querySelectorAll('section')),i=0,$=function(x){return document.getElementById(x)};
+var titles=["Titre","L’OCR","Fonctionnement OCR","Les VLM","Démo","OCR vs VLM","Choisir","Outils","Conclusion"];
+var mins=["","","3 min","5 min","5 min","3 min","5 min","2 min","4 min","3 min"];
+function go(n){i=Math.max(0,Math.min(S.length-1,n));S.forEach(function(s,k){s.classList.toggle('on',k==i)});
+document.querySelectorAll('#dots b').forEach(function(d,k){d.classList.toggle('on',k==i)});
+document.querySelector('#bar i').style.width=((i+1)/S.length*100)+'%';$('prev').disabled=i==0;$('next').disabled=i==S.length-1;document.querySelector('main').scrollTop=0}
+S.forEach(function(_,k){var d=document.createElement('b');d.title=titles[k];d.onclick=function(){go(k)};$('dots').appendChild(d)});
+$('prev').onclick=function(){go(i-1)};$('next').onclick=function(){go(i+1)};
+document.addEventListener('keydown',function(e){if(e.key=='ArrowRight')go(i+1);if(e.key=='ArrowLeft')go(i-1)});
+function tabs(id,out,data,cls){var b=$(id),o=$(out);data.forEach(function(d,k){var x=document.createElement('button');x.textContent=d[0];x.onclick=function(){[].forEach.call(b.children,function(c){c.classList.remove('sel')});x.classList.add('sel');o.innerHTML=d[1]};b.appendChild(x);if(k==0)x.click()})}
+// plan
+
+tabs('ocrb','ocro',[
+["1. Prétraitement","<b>But : rendre l’image lisible pour la machine.</b><br>• Redressement (deskew) des pages penchées<br>• Binarisation : passage en noir et blanc pour bien séparer l’encre du fond<br>• Suppression du bruit, des taches et des ombres, correction de l’éclairage<br>• Augmentation de la résolution si le texte est trop petit<br><span class='mu'>Une image propre améliore fortement la précision finale.</span>"],
+["2. Détection","<b>But : trouver où se trouve le texte.</b><br>• Analyse de la mise en page : blocs, colonnes, tableaux, images<br>• Découpage en lignes puis en mots, chacun encadré par une boîte englobante<br>• Modèles de détection neuronaux (type DB dans PaddleOCR) capables de repérer du texte incliné ou courbe<br><span class='mu'>Sortie : une liste de rectangles (ou polygones) à lire, avec leur ordre.</span>"],
+["3. Reconnaissance","<b>But : transformer chaque zone en caractères.</b><br>• Chaque ligne découpée est lue par un modèle : LSTM pour Tesseract, CRNN ou SVTR pour PaddleOCR<br>• Le modèle prédit une suite de caractères à partir de l’image, sans avoir à les séparer un par un<br>• Chaque mot reçoit un <b>score de confiance</b> (ex. 0,97) pour repérer les lectures douteuses<br><span class='mu'>Confusions fréquentes : O/0, l/1, S/5, rn/m.</span>"],
+["4. Sortie","<b>But : produire un texte exploitable.</b><br>• Remise dans l’ordre de lecture (haut → bas, gauche → droite, colonnes)<br>• Post-traitement : correction par dictionnaire ou modèle de langue, filtre sur les scores faibles<br>• Export : texte brut, JSON avec coordonnées et confiance, ou PDF recherchable (texte invisible superposé à l’image)<br><span class='mu'>Pour extraire un « montant » ou une « date », il faut ensuite ajouter des règles (regex) : l’OCR seul ne le fait pas.</span>"]]);
+tabs('vlmb','vlmo',[
+["Encodeur de vision","<b>1. Voir.</b> L’image est découpée en petits carrés (patchs) et passée dans un Vision Transformer (ViT) pré-entraîné, souvent de type CLIP ou SigLIP. Il produit des vecteurs numériques qui décrivent formes, couleurs, texte et mise en page. Certains modèles gèrent des images de résolution variable, utile pour les documents."],
+["Projecteur","<b>2. Traduire.</b> Un petit réseau (couche linéaire, MLP ou attention croisée) convertit ces vecteurs vers l’espace que comprend le modèle de langage. L’image devient une suite de « tokens visuels », comme des mots que le LLM peut lire. Plus l’image est grande, plus il y a de tokens (donc de coût)."],
+["LLM de langage","<b>3. Raisonner.</b> Le LLM reçoit les tokens visuels <i>et</i> la question (« Quel est le total ? ») dans la même séquence. Il génère la réponse mot par mot, en s’appuyant sur ce qu’il a vu et sur ses connaissances. C’est ce qui permet de comprendre le contexte, mais aussi, parfois, d’inventer."],
+["Résultat","<b>4. Répondre.</b> La sortie dépend de la consigne (prompt) : phrase, résumé, JSON structuré, tableau Markdown, description, analyse de graphique, coordonnées d’un objet. Un seul modèle remplace plusieurs outils, mais il faut formuler une consigne claire et vérifier les valeurs critiques."]]);
+// demo
+var D=$('demo');
+$('d1').onclick=function(){D.className='out';D.innerHTML='<pre>FACTURE N° 2026-0412\nDate : 14/03/2026\nClient : Atlas Conseil\nPrestation : audit 1 200,00 €\nTVA 20 % 240,00 €\nTOTAL TTC 1 440,00 €</pre><div class="mu" style="margin-top:6px">→ texte brut, aucune notion de « total ».</div>'};
+$('d2').onclick=function(){D.className='out b';D.innerHTML='Le total TTC est de <b>1 440,00 €</b> (1 200 € HT + 240 € de TVA à 20 %).'};
+$('d3').onclick=function(){D.className='out b';D.innerHTML='<pre>{\n "numero": "2026-0412",\n "date": "2026-03-14",\n "client": "Atlas Conseil",\n "total_ht": 1200.00,\n "tva": 240.00,\n "total_ttc": 1440.00\n}</pre>'};
+// comparatif
+var T={
+"Principe":[["Critère","OCR","VLM"],["Tâche","Transcrire le texte","Comprendre et répondre"],["Entrée","Image","Image + question"],["Sortie","Texte + positions","Langage naturel / JSON"],["Technologie","Détection + reconnaissance","Encodeur vision + LLM"],["Évaluation","CER / WER (erreurs de caractères et de mots)","Exactitude des réponses, benchmarks (DocVQA…)"],["Ressources","CPU suffisant, millisecondes par page","GPU conseillé, quelques secondes par page"],["Flexibilité","Faible : une tâche, un pipeline","Élevée : on change la consigne"]],
+"Avantages":[["OCR","VLM"],["Rapide, léger, tourne sur CPU","Comprend le contexte et la mise en page"],["Précis sur texte propre et imprimé","Flexible : une consigne = une tâche"],["Déterministe, peu coûteux","Gère graphiques, tableaux, manuscrit"],["Positions et confiance par mot","Extraction directe de champs structurés"]],
+"Limites":[["OCR","VLM"],["Aucune compréhension sémantique","Peut halluciner (valeurs inventées)"],["Sensible au bruit et à la mise en page complexe","Plus lourd : GPU, latence, coût"],["Pipeline à assembler pour extraire des champs","Moins déterministe, résultats variables"],["Faible sur manuscrit et tableaux","Peu fiable sur très petits caractères"]],
+"Cas d’usage":[["OCR","VLM"],["Numérisation d’archives","Questions-réponses sur documents"],["Indexation et recherche plein texte","Extraction de factures, contrats, formulaires"],["Lecture de plaques, numérotation","Analyse de graphiques et captures d’écran"],["Gros volumes à faible coût","Documents variés sans modèle dédié"]]};
+tabs('tabs','tbl_',[],0);
+(function(){var b=$('tabs'),t=$('tbl');Object.keys(T).forEach(function(k,n){var x=document.createElement('button');x.textContent=k;x.onclick=function(){[].forEach.call(b.children,function(c){c.classList.remove('sel')});x.classList.add('sel');var r=T[k];t.innerHTML='<tr>'+r[0].map(function(h){return'<th>'+h+'</th>'}).join('')+'</tr>'+r.slice(1).map(function(l){return'<tr>'+l.map(function(c){return'<td>'+c+'</td>'}).join('')+'</tr>'}).join('')};b.appendChild(x);if(n==0)x.click()})})();
+// sélecteur
+var C=[["Gros volume, budget serré",-1],["Texte imprimé et propre",-1],["Besoin de coordonnées précises",-1],["Questions en langage naturel",1],["Mise en page complexe / graphiques",1],["Extraction de champs variés en JSON",1],["Manuscrit ou documents très variés",1]],on={};
+C.forEach(function(c,k){var x=document.createElement('button');x.textContent=c[0];x.onclick=function(){on[k]=!on[k];x.classList.toggle('sel',!!on[k]);r()};$('crit').appendChild(x)});
+function r(){var s=0,n=0;for(var k in on)if(on[k]){s+=C[k][1];n++}var o=$('reco');
+if(!n){o.innerHTML='<span class="mu">Sélectionnez au moins un critère.</span>';return}
+o.className='out'+(s>0?' b':'');
+o.innerHTML=s<0?'<b>→ OCR</b> : rapide, économique et précis pour du texte propre.':s>0?'<b>→ VLM</b> : il comprend le contexte et répond à vos questions.':'<b>→ Approche hybride</b> : OCR pour le texte exact, VLM pour le raisonnement et la structuration.'}
+r();
+tabs('toolb','toolo',[
+["Tesseract","<b>OCR open source</b> (Apache 2.0), initié par HP puis soutenu par Google. Moteur LSTM depuis la v4, plus de 100 langues, CLI et bibliothèques (pytesseract).<br><span class='ok'>+ Simple, gratuit, léger</span> · <span class='ko'>− Sensible à la qualité d’image, peu à l’aise avec les mises en page complexes</span><br><b>Usage :</b> numériser des documents imprimés, PDF recherchables.<pre>import pytesseract<br>texte = pytesseract.image_to_string(image, lang='fra')</pre>"],
+["PaddleOCR","<b>OCR open source de Baidu</b> : détection + reconnaissance par deep learning, multilingue, versions légères, analyse de mise en page et de tableaux (PP-Structure).<br><span class='ok'>+ Très précis, bon sur scènes et documents</span> · <span class='ko'>− Dépendance au framework PaddlePaddle</span><br><b>Usage :</b> factures, pièces d’identité, texte en scène réelle (panneaux, étiquettes). Il renvoie pour chaque ligne les coordonnées, le texte et un score de confiance."],
+["Qwen-VL","<b>Famille de VLM d’Alibaba</b> (Qwen2-VL, Qwen2.5-VL, Qwen3-VL), poids ouverts. Lit des documents, localise des objets, répond à des questions et sort du JSON.<br><span class='ok'>+ Comprend documents, graphiques, captures</span> · <span class='ko'>− GPU recommandé, risque d’hallucination</span><br><b>Usage :</b> « Quel est le total ? », extraction de champs, analyse d’un graphique.<br><b>Exemple de consigne :</b> « Extrais la date, le client et le total TTC en JSON. »"],
+["Exemples d’usage","<ul><li><b>Lire un document</b> : Tesseract/PaddleOCR → texte intégral.</li><li><b>Extraire des informations</b> : VLM → champs en JSON (date, montant, client).</li><li><b>Répondre sur une image</b> : « Que montre ce graphique ? » → VLM.</li><li><b>Hybride</b> : OCR pour le texte exact + VLM pour interpréter.</li></ul>"]]);
+// quiz
+var Q=[["Quel outil sert avant tout à transcrire du texte ?",["OCR","VLM"],0],["Lequel peut répondre à « Quel est le total ? »",["OCR seul","VLM"],1],["Quel est le risque propre aux VLM ?",["Hallucinations","Pas de GPU"],0],["Gros volume de texte imprimé propre, faible coût :",["OCR","VLM"],0]];
+
+go(0);
+</script>
+</body>
+</html>
