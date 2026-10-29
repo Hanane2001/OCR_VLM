@@ -50,6 +50,11 @@ li{margin:4px 0}
 </section>
 
 <section>
+<div class="tag" style="color:var(--a)">Partie 1</div><h1 style="color:var(--a)">L’OCR</h1>
+<p style="font-size:20px">Lire le texte d’une image : définition, fonctionnement et outils (Tesseract, PaddleOCR).</p>
+</section>
+
+<section>
 <div class="tag">1 · Présentation de l’OCR</div><h2>Qu’est-ce que l’OCR ?</h2>
 <p><b>Optical Character Recognition</b> : technologie qui convertit le texte contenu dans une image, un scan ou un PDF non sélectionnable en <b>texte numérique exploitable</b> (recherche, copie, indexation).</p>
 <div class="two">
@@ -72,11 +77,33 @@ li{margin:4px 0}
 </section>
 
 <section>
+<div class="tag">Partie 1 · Outils OCR</div><h2>Tesseract et PaddleOCR (cliquez)</h2>
+<div class="row" id="toolb1"></div>
+<div class="out" id="toolo1"></div>
+</section>
+
+<section>
+<div class="tag" style="color:var(--b)">Partie 2</div><h1 style="color:var(--b)">Les VLM</h1>
+<p style="font-size:20px">Comprendre une image et répondre en langage naturel : fonctionnement et outils (Qwen-VL).</p>
+</section>
+
+<section>
 <div class="tag">3 · Présentation des VLM</div><h2>Vision-Language Models</h2>
 <p>Modèles multimodaux qui prennent <b>une image + une instruction en langage naturel</b> et produisent une réponse textuelle.</p>
 <div class="row" id="vlmb"></div>
 <div class="out b" id="vlmo"></div>
 <p class="mu">Exemples de capacités : décrire une image, lire un document, répondre à une question, extraire des champs en JSON, interpréter un graphique.</p>
+</section>
+
+<section>
+<div class="tag">Partie 2 · Outils VLM</div><h2>Qwen-VL et exemples d’utilisation (cliquez)</h2>
+<div class="row" id="toolb2"></div>
+<div class="out b" id="toolo2"></div>
+</section>
+
+<section>
+<div class="tag" style="color:var(--ok)">Partie 3</div><h1 style="color:var(--ok)">OCR vs VLM</h1>
+<p style="font-size:20px">Comparer les deux approches sur un même document, savoir choisir et conclure.</p>
 </section>
 
 <section>
@@ -104,12 +131,6 @@ li{margin:4px 0}
 </section>
 
 <section>
-<div class="tag">5 · Outils et applications</div><h2>Aperçu des outils (cliquez)</h2>
-<div class="row" id="toolb"></div>
-<div class="out" id="toolo"></div>
-</section>
-
-<section>
 <div class="tag">Conclusion</div><h2>Ce qu’il faut retenir</h2>
 <div class="two">
 <div class="card"><b>OCR = lire</b><br>Rapide, léger, précis sur le texte net. Il donne le texte et ses positions, rien de plus.</div>
@@ -125,7 +146,7 @@ li{margin:4px 0}
 
 <script>
 var S=[].slice.call(document.querySelectorAll('section')),i=0,$=function(x){return document.getElementById(x)};
-var titles=["Titre","L’OCR","Fonctionnement OCR","Les VLM","Démo","OCR vs VLM","Choisir","Outils","Conclusion"];
+var titles=["Titre","Partie 1","L’OCR","Fonctionnement OCR","Outils OCR","Partie 2","Les VLM","Outils VLM","Partie 3","Démo","OCR vs VLM","Choisir","Conclusion"];
 var mins=["","","3 min","5 min","5 min","3 min","5 min","2 min","4 min","3 min"];
 function go(n){i=Math.max(0,Math.min(S.length-1,n));S.forEach(function(s,k){s.classList.toggle('on',k==i)});
 document.querySelectorAll('#dots b').forEach(function(d,k){d.classList.toggle('on',k==i)});
@@ -167,11 +188,12 @@ if(!n){o.innerHTML='<span class="mu">Sélectionnez au moins un critère.</span>'
 o.className='out'+(s>0?' b':'');
 o.innerHTML=s<0?'<b>→ OCR</b> : rapide, économique et précis pour du texte propre.':s>0?'<b>→ VLM</b> : il comprend le contexte et répond à vos questions.':'<b>→ Approche hybride</b> : OCR pour le texte exact, VLM pour le raisonnement et la structuration.'}
 r();
-tabs('toolb','toolo',[
+var TL=[
 ["Tesseract","<b>OCR open source</b> (Apache 2.0), initié par HP puis soutenu par Google. Moteur LSTM depuis la v4, plus de 100 langues, CLI et bibliothèques (pytesseract).<br><span class='ok'>+ Simple, gratuit, léger</span> · <span class='ko'>− Sensible à la qualité d’image, peu à l’aise avec les mises en page complexes</span><br><b>Usage :</b> numériser des documents imprimés, PDF recherchables.<pre>import pytesseract<br>texte = pytesseract.image_to_string(image, lang='fra')</pre>"],
 ["PaddleOCR","<b>OCR open source de Baidu</b> : détection + reconnaissance par deep learning, multilingue, versions légères, analyse de mise en page et de tableaux (PP-Structure).<br><span class='ok'>+ Très précis, bon sur scènes et documents</span> · <span class='ko'>− Dépendance au framework PaddlePaddle</span><br><b>Usage :</b> factures, pièces d’identité, texte en scène réelle (panneaux, étiquettes). Il renvoie pour chaque ligne les coordonnées, le texte et un score de confiance."],
 ["Qwen-VL","<b>Famille de VLM d’Alibaba</b> (Qwen2-VL, Qwen2.5-VL, Qwen3-VL), poids ouverts. Lit des documents, localise des objets, répond à des questions et sort du JSON.<br><span class='ok'>+ Comprend documents, graphiques, captures</span> · <span class='ko'>− GPU recommandé, risque d’hallucination</span><br><b>Usage :</b> « Quel est le total ? », extraction de champs, analyse d’un graphique.<br><b>Exemple de consigne :</b> « Extrais la date, le client et le total TTC en JSON. »"],
-["Exemples d’usage","<ul><li><b>Lire un document</b> : Tesseract/PaddleOCR → texte intégral.</li><li><b>Extraire des informations</b> : VLM → champs en JSON (date, montant, client).</li><li><b>Répondre sur une image</b> : « Que montre ce graphique ? » → VLM.</li><li><b>Hybride</b> : OCR pour le texte exact + VLM pour interpréter.</li></ul>"]]);
+["Exemples d’usage","<ul><li><b>Lire un document</b> : Tesseract/PaddleOCR → texte intégral.</li><li><b>Extraire des informations</b> : VLM → champs en JSON (date, montant, client).</li><li><b>Répondre sur une image</b> : « Que montre ce graphique ? » → VLM.</li><li><b>Hybride</b> : OCR pour le texte exact + VLM pour interpréter.</li></ul>"]];
+tabs('toolb1','toolo1',TL.slice(0,2));tabs('toolb2','toolo2',[TL[2],TL[3]]);
 // quiz
 var Q=[["Quel outil sert avant tout à transcrire du texte ?",["OCR","VLM"],0],["Lequel peut répondre à « Quel est le total ? »",["OCR seul","VLM"],1],["Quel est le risque propre aux VLM ?",["Hallucinations","Pas de GPU"],0],["Gros volume de texte imprimé propre, faible coût :",["OCR","VLM"],0]];
 
